@@ -38,7 +38,7 @@ class NewVisitorTest(unittest.TestCase):
         inputbox.send_keys("Buy peacock feathers")
         #she hit enter and the page updates
         inputbox.send_keys(Keys.ENTER)
-        #time.sleep(10)
+
         #Now the page lists "1. Buy peacock feathers" as an item on the to-do list
         table = self.browser.find_element_by_id('id_list_table')
         rows = table.find_elements_by_tag_name('tr')
@@ -51,6 +51,7 @@ class NewVisitorTest(unittest.TestCase):
         #The page updates and shows both items
         table = self.browser.find_element_by_id('id_list_table')
         rows = table.find_elements_by_tag_name('tr')
+        time.sleep(10)
         self.check_for_row_in_list_table('1. Buy peacock feathers')
         self.check_for_row_in_list_table('2. Use peacock feathers to make a fly')
         #Edith wonders whether the site will remember her list. Then she sees
