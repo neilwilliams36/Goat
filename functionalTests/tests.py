@@ -1,12 +1,13 @@
 __author__ = 'nwilliams1'
 
 from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
 import time
 
-class NewVisitorTest(LiveServerTestCase):
+class NewVisitorTest(StaticLiveServerTestCase):
 
     def setUp(self):
         self.browser = webdriver.Firefox()
@@ -99,8 +100,9 @@ class NewVisitorTest(LiveServerTestCase):
 
         #Francis visits the home page.  There is no sign of Edith's list
         self.browser.get("http://127.0.0.1:8000")
-        self.check_for_not_in_list_table('1. Buy peacock feathers')
-        self.check_for_not_in_list_table('2. Use peacock feathers to make a fly')
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn('Buy peacock feather', page_text)
+        self.assertNotIn('Use peacock feathers to make a fly', page_text)
 
         #Francis starts a new list by entering a new item
         inputbox = self.browser.find_element_by_id('id_new_item')
