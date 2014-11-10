@@ -122,6 +122,8 @@ class NewVisitorTest(StaticLiveServerTestCase):
         self.browser.quit()
         self.browser = webdriver.Firefox()
 
+
+
         #Francis visits the home page.  There is no sign of Edith's list
         if self.server_url[7:12] == 'local':
             self.browser.get("http://127.0.0.1:8000")
