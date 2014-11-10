@@ -4,17 +4,35 @@ from django.test import LiveServerTestCase
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+import sys
 
 import time
 
+
+
+
 class NewVisitorTest(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        for arg in sys.argv:
+            if 'liveserver' in arg:
+                cls.server_url = 'http://' + arg.split('=')[1]
+                return
+        super().setUpClass()
+        cls.server_url = cls.live_server_url
 
     def setUp(self):
         self.browser = webdriver.Firefox()
         self.browser.implicitly_wait(3)
 
+
     def tearDown(self):
         self.browser.quit()
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls.server_url == cls.live_server_url:
+            super().tearDownClass()
 
     def check_for_row_in_list_table(self, row_text):
         table = self.browser.find_element_by_id('id_list_table')
@@ -28,7 +46,10 @@ class NewVisitorTest(StaticLiveServerTestCase):
 
     def test_layout_and_styling(self):
         #Edith goes to the home page
-        self.browser.get("http://127.0.0.1:8000")
+        if self.server_url[7:12] == 'local':
+            self.browser.get("http://127.0.0.1:8000")
+        else:
+            self.browser.get(self.server_url)
         self.browser.set_window_size(1024,768)
 
         #she notices that teh input box is nicely centered
@@ -45,7 +66,10 @@ class NewVisitorTest(StaticLiveServerTestCase):
         #Edith has heard about a coll new online to-do app.
         #she goes to check out the homepage
         #added a change here
-        self.browser.get("http://127.0.0.1:8000")
+        if self.server_url[7:12] == 'local':
+            self.browser.get("http://127.0.0.1:8000")
+        else:
+            self.browser.get(self.server_url)
         #She notices the page title and header mention to-do list
         self.assertIn('To Do List', self.browser.title)
         page_text = self.browser.find_element_by_tag_name('h1').text
@@ -99,7 +123,10 @@ class NewVisitorTest(StaticLiveServerTestCase):
         self.browser = webdriver.Firefox()
 
         #Francis visits the home page.  There is no sign of Edith's list
-        self.browser.get("http://127.0.0.1:8000")
+        if self.server_url[7:12] == 'local':
+            self.browser.get("http://127.0.0.1:8000")
+        else:
+            self.browser.get(self.server_url)
         page_text = self.browser.find_element_by_tag_name('body').text
         self.assertNotIn('Buy peacock feather', page_text)
         self.assertNotIn('Use peacock feathers to make a fly', page_text)
