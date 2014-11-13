@@ -3,6 +3,7 @@ from django.test import TestCase
 from lists.models import Item, List
 from django.core.exceptions import ValidationError
 from django.utils.html import escape
+from lists.forms import ItemForm, EMPTY_LIST_ERROR
 
 
 class NewItemTest(TestCase):
@@ -11,7 +12,7 @@ class NewItemTest(TestCase):
         other_list = List.objects.create()
         correct_list = List.objects.create()
 
-        self.client.post('/lists/%d/' % (correct_list.id), data={'item_text': "A new item for an existing list"})
+        self.client.post('/lists/%d/' % (correct_list.id), data={'text': "A new item for an existing list"})
 
         self.assertEqual(Item.objects.count(), 1)
         new_item = Item.objects.first()
@@ -22,7 +23,7 @@ class NewItemTest(TestCase):
         other_list = List.objects.create()
         correct_list = List.objects.create()
 
-        response = self.client.post('/lists/%d/' % (correct_list.id), data={'item_text': "A new item for an existing list"})
+        response = self.client.post('/lists/%d/' % (correct_list.id), data={'text': "A new item for an existing list"})
 
         self.assertRedirects(response, '/lists/%d/'%(correct_list.id))
 
@@ -56,6 +57,9 @@ class ItemModelTest(TestCase):
         self.assertEqual(second_saved_item.list, list_)
 
 class ListViewTest(TestCase):
+    def post_invalid_input(self):
+        list_ = List.objects.create()
+        return self.client.post('/lists/%d/' % (list_.id,), data={'text':''})
 
     def test_displays_all_items(self):
         list_ = List.objects.create()
@@ -116,7 +120,7 @@ class ListViewTest(TestCase):
         other_list = List.objects.create()
         correct_list = List.objects.create()
 
-        self.client.post('/lists/%d/' % (correct_list.id,), data={'item_text' : "A new item for an existing list"})
+        self.client.post('/lists/%d/' % (correct_list.id,), data={'text' : "A new item for an existing list"})
 
         self.assertEqual(Item.objects.count(),1)
         new_item = Item.objects.first()
@@ -127,7 +131,7 @@ class ListViewTest(TestCase):
         other_list = List.objects.create()
         correct_list = List.objects.create()
 
-        response = self.client.post('/lists/%d/' % (correct_list.id,), data={'item_text' : "A new item for an existing list"})
+        response = self.client.post('/lists/%d/' % (correct_list.id,), data={'text' : "A new item for an existing list"})
 
         self.assertRedirects(response, '/lists/%d/' % (correct_list.id,))
 
@@ -143,17 +147,36 @@ class ListViewTest(TestCase):
         list_ = List.objects.create()
         self.assertEqual(list_.get_absolute_url(), '/lists/%d/' % (list_.id,))
 
+
+
+    def test_for_invalid_input_nothing_saved_to_db(self):
+        self.post_invalid_input()
+        self.assertEqual(Item.objects.count(),0)
+
+    def test_for_invalid_input_renders_list_template(self):
+        response = self.post_invalid_input()
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'lists.html')
+
+    def test_for_invalid_input_passes_form_to_template(self):
+        response = self.post_invalid_input()
+        self.assertIsInstance(response.context['form'], ItemForm)
+
+    def test_for_invalid_input_shows_error_on_page(self):
+        response = self.post_invalid_input()
+        self.assertContains(response, escape(EMPTY_LIST_ERROR))
+
 class NewListTest(TestCase):
 
     def test_can_save_a_post_request(self):
-        self.client.post('/lists/new', data={'item_text': 'A new list item'})
+        self.client.post('/lists/new', data={'text': 'A new list item'})
         self.assertEqual(Item.objects.count(),1)
         new_item = Item.objects.first()
         self.assertEqual(new_item.text, 'A new list item')
 
 
     def test_redirects_after_POST(self):
-        response = self.client.post('/lists/new', data={'item_text': 'A new list item'})
+        response = self.client.post('/lists/new', data={'text': 'A new list item'})
         new_list = List.objects.first()
         self.assertRedirects(response, '/lists/%d/'%(new_list.id))
 
