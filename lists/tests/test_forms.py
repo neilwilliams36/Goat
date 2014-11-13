@@ -1,7 +1,7 @@
 __author__ = 'nwilliams1'
 
 from django.test import TestCase
-from lists.forms import ItemForm, EMPTY_LIST_ERROR
+from lists.forms import ItemForm, EMPTY_LIST_ERROR, ExistingListItemForm, DUPLICATE_ITEM_ERROR
 from lists.models import Item, List
 
 class ItemFormTest(TestCase):
@@ -23,6 +23,33 @@ class ItemFormTest(TestCase):
         self.assertEqual(new_item, Item.objects.first())
         self.assertEqual(new_item.text, 'do me')
         self.assertEqual(new_item.list, list_)
+    '''
+    def test_form_save(self):
+        list_ = List.objects.create()
+        form = ExistingListItemForm(for_list = list_, data={'text', 'hi'})
+        new_item = form.save() #This is throwing a strange erroe
+        self.assertEqual(new_item, Item.objects.all()[0])
+    '''
+class ExistingListItemsFormTest(TestCase):
+
+    def test_form_renders_item_test_input(self):
+        list_ = List.objects.create()
+        form = ExistingListItemForm(for_list = list_)
+        self.assertIn('placeholder="Enter a to-do item"', form.as_p())
+
+    def test_form_validation_for_blank_items(self):
+        list_ = List.objects.create()
+        form = ExistingListItemForm(for_list = list_, data={"text":''})
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['text'], [EMPTY_LIST_ERROR])
+
+    def test_form_validation_for_duplicate_items(self):
+        list_ = List.objects.create()
+        Item.objects.create(list=list_, text='no twins')
+        form = ExistingListItemForm(for_list=list_, data={'text':'no twins'})
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['text'], [DUPLICATE_ITEM_ERROR])
+
 
 
 

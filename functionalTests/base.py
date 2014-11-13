@@ -44,4 +44,13 @@ class FunctionalTest(StaticLiveServerTestCase):
     def get_item_input_box(self):
         return self.browser.find_element_by_id('id_text')
 
+    def get_error_element(self):
+        return self.browser.find_element_by_css_selector('.has-error')
+
+    def open_browser(self):
+        if self.server_url[7:12] == 'local':
+            self.browser.get("http://127.0.0.1:8000")
+        else:
+            self.browser.get(self.server_url)
+
 
