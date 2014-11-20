@@ -9,6 +9,20 @@
 </head>
 <body>
 <div class="container">
+
+    <nav class="navbar" role="navigation">
+        <a class="navbar-brand" href="#">To Do List</a>
+        {% if user.email %}
+            Logged in as {{ user.email}}
+            <a class="btn navbar-btn" id="logout" href="#">Sign out</a>
+        {% else %}
+            <a class="btn navbar-btn" href="#" id="login">Sign in</a>
+        {% endif %}
+
+    </nav>
+
+
+
 <div class="row">
 <div class="col-6 col-offset-3 jumbotron">
 <div class="text-center">
@@ -37,5 +51,46 @@
 </div>
 <script src="/static/jquery.js"></script>
 <script src="/static/list.js"></script>
+<script src="https://login.persona.org/include.js"></script>
+<script>
+    $(document).ready(function(){
+
+        var loginlink = document.getElementById('login');
+        var logoutlink = document.getElementById('logout');
+        var currentUser = '{{ user.email }}'||null;
+        var csrf_token = '{{ csrf_token }}';
+
+
+        if (loginlink){
+            loginlink.onclick = function(){
+                navigator.id.request();
+            }
+        }
+
+        if(logoutlink){
+            logoutlink.onclick = function(){
+                navigator.id.logout();
+            }
+        }
+
+        navigator.id.watch({
+            loggedInUser: currentUser,
+            onlogin: function (assertion) {
+                $.post('/accounts/login', {assertion: assertion, csrfmiddlewaretoken: csrf_token })
+                        .done(function () {
+                            window.location.reload();
+                        })
+                        .fail(function () {
+                            navigator.id.logout();
+                        });
+            },
+            onlogout: function () {
+                $.post('/accounts/logout',{csrfmiddlewaretoken: csrf_token }).always(function () {window.location.reload();});
+
+        }
+
+        });
+    });
+</script>
 </body>
 </html>
