@@ -23,3 +23,21 @@ class LoginTest(FunctionalTest):
         self.wait_for_element_with_id('logout')
         navbar = self.browser.find_element_by_css_selector('.navbar')
         self.assertIn('edith@mockmyid.com', navbar.text)
+
+        #Refreshed the page shees that its a real session log in
+        self.browser.refresh()
+        self.wait_for_element_with_id('logout')
+        navbar = self.browser.find_element_by_css_selector('.navbar')
+        self.assertIn('edith@mockmyid.com', navbar.text)
+
+        #Clicks log out
+        self.browser.find_element_by_id('logout').click()
+        self.wait_for_element_with_id('login')
+        navbar = self.browser.find_element_by_css_selector('.navbar')
+        self.assertNotIn('edith@mockmyid.com', navbar.text)
+
+        #The logout also persists after refresh
+        self.browser.refresh()
+        self.wait_for_element_with_id('login')
+        navbar = self.browser.find_element_by_css_selector('.navbar')
+        self.assertNotIn('edith@mockmyid.com', navbar.text)
